@@ -869,7 +869,7 @@ function generateInviteCard() {
 
   ctx.fillStyle = "#31433d";
   ctx.font = "bold 74px sans-serif";
-  ctx.fillText("只给我们", width / 2, 330);
+  ctx.fillText("两人即宇宙", width / 2, 330);
 
   ctx.fillStyle = "#63736e";
   ctx.font = "30px sans-serif";
@@ -929,7 +929,7 @@ function downloadInviteCard() {
   if (!inviteImageUrl) return;
   const link = document.createElement("a");
   link.href = inviteImageUrl;
-  link.download = "只给我们-邀请卡片.png";
+  link.download = "两人即宇宙-邀请卡片.png";
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -937,10 +937,10 @@ function downloadInviteCard() {
 
 async function shareInviteCard() {
   if (!inviteImageBlob) await generateInviteCard();
-  const file = new File([inviteImageBlob], "只给我们-邀请卡片.png", { type: "image/png" });
+  const file = new File([inviteImageBlob], "两人即宇宙-邀请卡片.png", { type: "image/png" });
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
-      title: "只给我们",
+      title: "两人即宇宙",
       text: `邀请你加入我们的双人秘密基地：${inviteUrl}`,
       files: [file],
     });

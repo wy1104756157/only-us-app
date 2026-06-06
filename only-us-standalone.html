@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>只给我们</title>
+    <title>两人即宇宙</title>
     <style>
 :root {
   color-scheme: light;
@@ -1550,13 +1550,13 @@ button {
 </style>
   </head>
   <body>
-    <main class="phone-shell" aria-label="只给我们小程序原型">
+    <main class="phone-shell" aria-label="两人即宇宙小程序原型">
       <section class="app-screen" id="app">
         <header class="topbar">
           <button class="icon-button" id="backButton" aria-label="返回">‹</button>
           <div>
             <p class="eyebrow">双人秘密基地</p>
-            <h1>只给我们</h1>
+            <h1>两人即宇宙</h1>
           </div>
           <button class="icon-button" id="inviteButton" aria-label="邀请另一半">+</button>
         </header>
@@ -1759,7 +1759,7 @@ button {
         </div>
 
         <div class="invite-preview">
-          <img id="inviteImage" alt="只给我们的邀请卡片" />
+          <img id="inviteImage" alt="两人即宇宙邀请卡片" />
         </div>
 
         <div class="invite-actions">
@@ -2699,7 +2699,7 @@ function generateInviteCard() {
 
   ctx.fillStyle = "#31433d";
   ctx.font = "bold 74px sans-serif";
-  ctx.fillText("只给我们", width / 2, 330);
+  ctx.fillText("两人即宇宙", width / 2, 330);
 
   ctx.fillStyle = "#63736e";
   ctx.font = "30px sans-serif";
@@ -2759,7 +2759,7 @@ function downloadInviteCard() {
   if (!inviteImageUrl) return;
   const link = document.createElement("a");
   link.href = inviteImageUrl;
-  link.download = "只给我们-邀请卡片.png";
+  link.download = "两人即宇宙-邀请卡片.png";
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -2767,10 +2767,10 @@ function downloadInviteCard() {
 
 async function shareInviteCard() {
   if (!inviteImageBlob) await generateInviteCard();
-  const file = new File([inviteImageBlob], "只给我们-邀请卡片.png", { type: "image/png" });
+  const file = new File([inviteImageBlob], "两人即宇宙-邀请卡片.png", { type: "image/png" });
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
-      title: "只给我们",
+      title: "两人即宇宙",
       text: `邀请你加入我们的双人秘密基地：${inviteUrl}`,
       files: [file],
     });
