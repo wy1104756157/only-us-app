@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>只给我们</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="phone-shell" aria-label="只给我们小程序原型">
+      <section class="app-screen" id="app">
+        <header class="topbar">
+          <button class="icon-button" id="backButton" aria-label="返回">‹</button>
+          <div>
+            <p class="eyebrow">双人秘密基地</p>
+            <h1>只给我们</h1>
+          </div>
+          <button class="icon-button" id="inviteButton" aria-label="邀请另一半">+</button>
+        </header>
+
+        <section class="view active" id="homeView">
+          <div class="hero-panel">
+            <div class="avatar-row">
+              <div class="avatar">你</div>
+              <div class="bind-line"></div>
+              <div class="avatar soft">TA</div>
+            </div>
+            <p>在一起</p>
+            <strong>238 天</strong>
+            <span>距离 TA 的生日还有 12 天</span>
+          </div>
+
+          <div class="quick-strip">
+            <button class="quick-action" data-compose="moment" data-unread-type="moment">
+              <span class="unread-badge" aria-label="未读心动瞬间"></span>
+              心动瞬间
+            </button>
+            <button class="quick-action" data-compose="wish" data-unread-type="wish">
+              <span class="unread-badge" aria-label="未读心愿"></span>
+              写个心愿
+            </button>
+            <button class="quick-action" data-compose="whisper" data-unread-type="whisper">
+              <span class="unread-badge" aria-label="未读蛐蛐"></span>
+              留条蛐蛐
+            </button>
+          </div>
+
+          <div class="section-heading">
+            <h2>今日动态</h2>
+            <button id="markReadButton">模拟 TA 查看</button>
+          </div>
+          <div class="feed" id="feedList"></div>
+        </section>
+
+        <section class="view" id="recordView">
+          <div class="section-heading roomy">
+            <div>
+              <p class="eyebrow">记录抽屉</p>
+              <h2>把小事放进这里</h2>
+            </div>
+          </div>
+          <div class="module-grid">
+            <button class="module-card coral" data-compose="moment">
+              <span>✨</span>
+              <strong>Moments</strong>
+              <em>心动或感动的瞬间</em>
+            </button>
+            <button class="module-card mint" data-compose="wish">
+              <span>🎁</span>
+              <strong>心语心愿</strong>
+              <em>想要、期待与暗示</em>
+            </button>
+            <button class="module-card gold" data-compose="date">
+              <span>⏳</span>
+              <strong>重要时间</strong>
+              <em>生日、纪念日、倒计时</em>
+            </button>
+            <button class="module-card blue" data-compose="note">
+              <span>💭</span>
+              <strong>随记随想</strong>
+              <em>聊天、灵感、日常碎片</em>
+            </button>
+            <button class="module-card plum wide" data-compose="whisper">
+              <span>🤫</span>
+              <strong>蛐蛐</strong>
+              <em>准备好再拆开的悄悄话</em>
+            </button>
+            <button class="module-card mint" data-compose="chat">
+              <span>💬</span>
+              <strong>聊天存档</strong>
+              <em>粘贴微信聊天记录</em>
+            </button>
+            <button class="module-card blue" id="openGraphButton">
+              <span>🫧</span>
+              <strong>关键词花园</strong>
+              <em>自动生成关系图谱</em>
+            </button>
+          </div>
+        </section>
+
+        <section class="view" id="graphView">
+          <div class="section-heading roomy">
+            <div>
+              <p class="eyebrow">关键词花园</p>
+              <h2>自动生成的记忆图谱</h2>
+            </div>
+          </div>
+          <div class="graph-summary">
+            <strong id="graphSummary">正在整理你们的高频词</strong>
+            <span>所有记录和粘贴的聊天文字都会进入分析；你只需要在这里保留或删除词条。</span>
+          </div>
+          <div class="graph-stage" id="graphStage"></div>
+          <div class="section-heading compact">
+            <h2>高频词条</h2>
+            <button id="resetGraphButton">恢复已删词</button>
+          </div>
+          <div class="keyword-list" id="keywordList"></div>
+          <div class="related-panel">
+            <p class="eyebrow" id="relatedTitle">词条内容</p>
+            <div id="relatedEntries"></div>
+          </div>
+        </section>
+
+        <section class="view" id="baseView">
+          <div class="base-card">
+            <p class="eyebrow">基地状态</p>
+            <h2>已绑定双人空间</h2>
+            <div class="invite-code">LOVE-0626</div>
+            <p>把邀请链接发给另一半后，对方确认加入，就能共同更新和看见这里的所有记录。</p>
+            <button class="primary-button" id="copyInviteButton">生成邀请卡片</button>
+          </div>
+
+          <div class="setting-list">
+            <button>更换基地背景 <span>暖光日记</span></button>
+            <button>提醒设置 <span>纪念日前 1 天</span></button>
+            <button>语音偏好 <span>最长 60 秒</span></button>
+            <button>浏览记录 <span>开启</span></button>
+          </div>
+        </section>
+
+        <nav class="tabbar" aria-label="底部导航">
+          <button class="tab active" data-tab="home">首页</button>
+          <button class="tab" data-tab="record">记录</button>
+          <button class="tab" data-tab="graph">图谱</button>
+          <button class="tab" data-tab="base">基地</button>
+        </nav>
+
+        <button class="compose-fab" id="composeFab" aria-label="记录一下">+</button>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="composeModal" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="modalType">发布记录</p>
+            <h2 id="modalTitle">记录一下</h2>
+          </div>
+          <button class="icon-button" id="closeModal" aria-label="关闭">×</button>
+        </div>
+
+        <div class="type-picker" id="typePicker">
+          <button data-type="moment">Moments</button>
+          <button data-type="wish">心愿</button>
+          <button data-type="date">时间</button>
+          <button data-type="note">随记</button>
+          <button data-type="whisper">蛐蛐</button>
+          <button data-type="chat">聊天</button>
+        </div>
+
+        <label class="field">
+          <span>标题</span>
+          <input id="entryTitle" maxlength="24" placeholder="给这条记录起个名字" />
+        </label>
+
+        <label class="field">
+          <span>内容</span>
+          <textarea id="entryBody" rows="4" maxlength="160" placeholder="写下只给 TA 看的话"></textarea>
+        </label>
+
+        <div class="media-row">
+          <button class="media-button" id="imageToggle">添加图片</button>
+          <button class="media-button" id="voiceToggle">按住说话</button>
+        </div>
+
+        <div class="voice-preview" id="voicePreview">
+          <span></span>
+          <strong>0:18</strong>
+          <small>松开后会随记录一起发送</small>
+        </div>
+
+        <button class="primary-button full" id="publishButton">发布到基地</button>
+      </section>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
