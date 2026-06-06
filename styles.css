@@ -419,6 +419,12 @@ button {
   color: #6f827b;
 }
 
+.entry-actions .poster-action {
+  border-color: #d8cbe2;
+  background: #f6f3fb;
+  color: #6d5d73;
+}
+
 .feed-meta {
   gap: 8px;
   min-width: 0;
@@ -1085,6 +1091,96 @@ button {
 .base-card p {
   color: var(--muted);
   line-height: 1.6;
+}
+
+.poster-preview {
+  position: relative;
+  display: none;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #f8fcfa;
+}
+
+.poster-preview.active {
+  display: block;
+}
+
+.poster-preview img {
+  display: block;
+  width: 100%;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.subject-editor {
+  position: absolute;
+  inset: 10px;
+  display: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.subject-editor.active {
+  display: block;
+}
+
+.subject-box {
+  position: absolute;
+  left: 20%;
+  top: 22%;
+  width: 48%;
+  height: 36%;
+  border: 2px dashed rgba(255, 255, 255, 0.98);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 999px rgba(49, 67, 61, 0.22),
+    0 10px 28px rgba(0, 0, 0, 0.18);
+  touch-action: none;
+}
+
+.subject-box span {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  padding: 5px 9px;
+  border-radius: 14px 0 12px 0;
+  background: rgba(255, 255, 255, 0.94);
+  color: #4f806f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.subject-box i {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 22px;
+  height: 22px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #6eae99;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  cursor: nwse-resize;
+}
+
+.poster-actions {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.poster-actions.active {
+  display: grid;
+}
+
+.poster-modal-card {
+  width: min(430px, calc(100vw - 28px));
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
 }
 
 .invite-code {

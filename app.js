@@ -204,8 +204,25 @@ const partnerNameInput = document.querySelector("#partnerNameInput");
 const daysInput = document.querySelector("#daysInput");
 const toggleQuickButton = document.querySelector("#toggleQuickButton");
 const quickStrip = document.querySelector(".quick-strip");
+const posterModal = document.querySelector("#posterModal");
+const entryPosterImage = document.querySelector("#entryPosterImage");
+const subjectEditor = document.querySelector("#subjectEditor");
+const subjectBox = document.querySelector("#subjectBox");
+const entryPosterAdjustButton = document.querySelector("#entryPosterAdjustButton");
+const entryPosterApplyButton = document.querySelector("#entryPosterApplyButton");
+const entryPosterDownloadButton = document.querySelector("#entryPosterDownloadButton");
+const entryPosterShareButton = document.querySelector("#entryPosterShareButton");
 let inviteImageBlob = null;
 let inviteImageUrl = "";
+let posterBlob = null;
+let posterUrl = "";
+let posterEntryTitle = "两人即宇宙";
+let currentPosterEntryId = null;
+let currentSubjectBox = null;
+let manualSubjectBox = null;
+const manualSubjectBoxes = new Map();
+let subjectDrag = null;
+const posterSize = { width: 900, height: 1280 };
 
 function getShortName(name, fallback) {
   return (name || fallback).trim().slice(0, 2) || fallback;
@@ -336,6 +353,7 @@ function renderEntryCard(entry, options = {}) {
         </div>
         ${entry.author === "你" || entry.type === "date" || entry.type === "wish" ? `
           <div class="entry-actions">
+            <button class="poster-action" data-entry-poster="${entry.id}">生成海报</button>
             ${entry.type === "date" ? `<button data-home-date="${entry.id}">${entry.showOnHome ? "首页中" : "放首页"}</button>` : ""}
             ${entry.type === "wish" && !entry.wishCompleted ? `<button class="stamp-action" data-complete-wish="${entry.id}">👍 太棒啦</button>` : ""}
             ${entry.type === "wish" && entry.wishCompleted ? `<button class="undo-stamp-action" data-reset-wish="${entry.id}">恢复未完成</button>` : ""}
@@ -344,7 +362,7 @@ function renderEntryCard(entry, options = {}) {
               <button data-delete-entry="${entry.id}">删除</button>
             ` : ""}
           </div>
-        ` : ""}
+        ` : `<div class="entry-actions"><button class="poster-action" data-entry-poster="${entry.id}">生成海报</button></div>`}
       </div>
       <h3>${entry.title}</h3>
       ${wishStamp}
@@ -932,6 +950,537 @@ async function shareInviteCard() {
   showToast("当前浏览器不支持直接分享，已下载图片");
 }
 
+function loadImageFromUrl(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image load failed"));
+    image.src = src;
+  });
+}
+
+function drawCoverImage(ctx, image, x, y, width, height) {
+  const sourceRatio = image.width / image.height;
+  const targetRatio = width / height;
+  let sx = 0;
+  let sy = 0;
+  let sw = image.width;
+  let sh = image.height;
+
+  if (sourceRatio > targetRatio) {
+    sw = image.height * targetRatio;
+    sx = (image.width - sw) / 2;
+  } else {
+    sh = image.width / targetRatio;
+    sy = (image.height - sh) / 2;
+  }
+
+  ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+}
+
+function wrapCanvasText(ctx, text, maxWidth, maxLines = 5) {
+  const chars = [...text.replace(/\s+/g, " ").trim()];
+  const lines = [];
+  let current = "";
+  chars.forEach((char) => {
+    const next = current + char;
+    if (ctx.measureText(next).width > maxWidth && current) {
+      lines.push(current);
+      current = char;
+    } else {
+      current = next;
+    }
+  });
+  if (current) lines.push(current);
+  if (lines.length > maxLines) {
+    const clipped = lines.slice(0, maxLines);
+    clipped[maxLines - 1] = `${clipped[maxLines - 1].slice(0, -1)}…`;
+    return clipped;
+  }
+  return lines;
+}
+
+function drawSkyFallback(ctx, width, height) {
+  const sky = ctx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, "#2c80c7");
+  sky.addColorStop(0.55, "#72b7e6");
+  sky.addColorStop(1, "#eef7fb");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
+
+  const cloud = (x, y, scale, alpha = 0.78) => {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const cloudGradient = ctx.createRadialGradient(x, y, 40 * scale, x, y, 170 * scale);
+    cloudGradient.addColorStop(0, "#ffffff");
+    cloudGradient.addColorStop(1, "rgba(255,255,255,0.28)");
+    ctx.fillStyle = cloudGradient;
+    [
+      [0, 20, 90],
+      [78, 0, 105],
+      [175, 35, 120],
+      [-95, 48, 92],
+      [55, 82, 118],
+    ].forEach(([dx, dy, radius]) => {
+      ctx.beginPath();
+      ctx.arc(x + dx * scale, y + dy * scale, radius * scale, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  };
+
+  cloud(310, 410, 1.15, 0.82);
+  cloud(650, 495, 1, 0.7);
+  cloud(165, 635, 0.8, 0.58);
+
+  const land = ctx.createLinearGradient(0, height * 0.78, 0, height);
+  land.addColorStop(0, "rgba(34,70,49,0.1)");
+  land.addColorStop(1, "rgba(17,43,31,0.72)");
+  ctx.fillStyle = land;
+  ctx.fillRect(0, height * 0.78, width, height * 0.22);
+}
+
+function drawChalkLine(ctx, points, width = 10) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.92)";
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = "rgba(255,255,255,0.32)";
+  ctx.shadowBlur = 3;
+  for (let offset = -1; offset <= 1; offset += 1) {
+    ctx.beginPath();
+    points.forEach(([x, y], index) => {
+      if (index === 0) ctx.moveTo(x + offset, y);
+      else ctx.lineTo(x + offset, y + offset);
+    });
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function detectSubjectBox(canvas, width, height) {
+  const sampleWidth = 90;
+  const sampleHeight = 128;
+  const sample = document.createElement("canvas");
+  sample.width = sampleWidth;
+  sample.height = sampleHeight;
+  const sampleCtx = sample.getContext("2d", { willReadFrequently: true });
+  sampleCtx.drawImage(canvas, 0, 0, sampleWidth, sampleHeight);
+  const { data } = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+  const scores = [];
+  let maxScore = 0;
+
+  const lumaAt = (x, y) => {
+    const index = (y * sampleWidth + x) * 4;
+    return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+  };
+
+  for (let y = 1; y < sampleHeight - 1; y += 1) {
+    for (let x = 1; x < sampleWidth - 1; x += 1) {
+      const center = lumaAt(x, y);
+      const edge = Math.abs(center - lumaAt(x + 1, y))
+        + Math.abs(center - lumaAt(x - 1, y))
+        + Math.abs(center - lumaAt(x, y + 1))
+        + Math.abs(center - lumaAt(x, y - 1));
+      const index = (y * sampleWidth + x) * 4;
+      const saturation = Math.max(data[index], data[index + 1], data[index + 2])
+        - Math.min(data[index], data[index + 1], data[index + 2]);
+      const centerBias = 1 - Math.min(0.75, Math.hypot((x / sampleWidth) - 0.5, (y / sampleHeight) - 0.5));
+      const score = (edge * 0.72 + saturation * 0.28) * centerBias;
+      scores.push({ x, y, score });
+      maxScore = Math.max(maxScore, score);
+    }
+  }
+
+  const threshold = Math.max(26, maxScore * 0.45);
+  const hot = scores.filter((item) => item.score >= threshold);
+  if (hot.length < 24) {
+    return { x: width * 0.18, y: height * 0.2, width: width * 0.64, height: height * 0.46 };
+  }
+
+  let minX = sampleWidth;
+  let minY = sampleHeight;
+  let maxX = 0;
+  let maxY = 0;
+  hot.forEach(({ x, y }) => {
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+
+  const padX = sampleWidth * 0.07;
+  const padY = sampleHeight * 0.07;
+  minX = Math.max(0, minX - padX);
+  minY = Math.max(0, minY - padY);
+  maxX = Math.min(sampleWidth, maxX + padX);
+  maxY = Math.min(sampleHeight, maxY + padY);
+
+  const box = {
+    x: (minX / sampleWidth) * width,
+    y: (minY / sampleHeight) * height,
+    width: ((maxX - minX) / sampleWidth) * width,
+    height: ((maxY - minY) / sampleHeight) * height,
+  };
+
+  if (box.width < width * 0.22 || box.height < height * 0.18) {
+    return { x: width * 0.2, y: height * 0.22, width: width * 0.6, height: height * 0.42 };
+  }
+  return box;
+}
+
+function intersects(a, b) {
+  return !(a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y);
+}
+
+function chooseTextLayout(subjectBox, width, height, titleLineCount, bodyLineCount) {
+  const textHeight = titleLineCount * 70 + bodyLineCount * 46 + 86;
+  const candidates = [
+    { x: 68, y: 90, width: width - 136, height: textHeight, name: "top" },
+    { x: 68, y: height - textHeight - 72, width: width - 136, height: textHeight, name: "bottom" },
+    { x: 68, y: Math.max(110, subjectBox.y - textHeight - 44), width: width - 136, height: textHeight, name: "above" },
+    { x: 68, y: Math.min(height - textHeight - 72, subjectBox.y + subjectBox.height + 44), width: width - 136, height: textHeight, name: "below" },
+  ];
+
+  const scoreCandidate = (candidate) => {
+    const overlapPenalty = intersects(candidate, subjectBox) ? 10000 : 0;
+    const edgePenalty = candidate.y < 70 || candidate.y + candidate.height > height - 42 ? 900 : 0;
+    const bottomBonus = candidate.name === "bottom" ? -120 : 0;
+    return overlapPenalty + edgePenalty + bottomBonus + Math.abs(candidate.y - height * 0.68) * 0.15;
+  };
+
+  return candidates.sort((a, b) => scoreCandidate(a) - scoreCandidate(b))[0];
+}
+
+function drawSubjectOutline(ctx, box) {
+  const x = Math.max(42, box.x - 28);
+  const y = Math.max(54, box.y - 30);
+  const right = Math.min(858, box.x + box.width + 28);
+  const bottom = Math.min(1218, box.y + box.height + 28);
+  if (right - x > 780 || bottom - y > 1040) {
+    drawChalkLine(ctx, [[52, 62], [220, 48], [450, 64], [700, 50], [850, 74]], 8);
+    drawChalkLine(ctx, [[64, 90], [48, 360], [64, 680], [50, 1060], [68, 1210]], 8);
+    return;
+  }
+  const midY = y + (bottom - y) * 0.45;
+  drawChalkLine(ctx, [
+    [x, midY],
+    [x + (right - x) * 0.12, y + 18],
+    [x + (right - x) * 0.38, y],
+    [x + (right - x) * 0.64, y + 14],
+    [right - 10, y + (bottom - y) * 0.28],
+    [right, y + (bottom - y) * 0.62],
+    [right - 72, bottom - 12],
+    [x + (right - x) * 0.46, bottom],
+    [x + 28, bottom - 44],
+    [x, midY],
+  ], 10);
+}
+
+function clampSubjectBox(box, width = posterSize.width, height = posterSize.height) {
+  const minWidth = width * 0.14;
+  const minHeight = height * 0.12;
+  const nextWidth = Math.min(width * 0.9, Math.max(minWidth, box.width));
+  const nextHeight = Math.min(height * 0.82, Math.max(minHeight, box.height));
+  return {
+    x: Math.min(width - nextWidth, Math.max(0, box.x)),
+    y: Math.min(height - nextHeight, Math.max(0, box.y)),
+    width: nextWidth,
+    height: nextHeight,
+  };
+}
+
+function setSubjectEditorActive(isActive) {
+  subjectEditor.classList.toggle("active", isActive);
+  subjectEditor.setAttribute("aria-hidden", String(!isActive));
+}
+
+function syncSubjectBoxToEditor(box = currentSubjectBox) {
+  if (!box || !subjectEditor || !subjectBox) return;
+  const editorRect = subjectEditor.getBoundingClientRect();
+  if (!editorRect.width || !editorRect.height) return;
+  subjectBox.style.left = `${(box.x / posterSize.width) * editorRect.width}px`;
+  subjectBox.style.top = `${(box.y / posterSize.height) * editorRect.height}px`;
+  subjectBox.style.width = `${(box.width / posterSize.width) * editorRect.width}px`;
+  subjectBox.style.height = `${(box.height / posterSize.height) * editorRect.height}px`;
+}
+
+function getSubjectBoxFromEditor() {
+  const editorRect = subjectEditor.getBoundingClientRect();
+  const boxRect = subjectBox.getBoundingClientRect();
+  if (!editorRect.width || !editorRect.height) return currentSubjectBox;
+  return clampSubjectBox({
+    x: ((boxRect.left - editorRect.left) / editorRect.width) * posterSize.width,
+    y: ((boxRect.top - editorRect.top) / editorRect.height) * posterSize.height,
+    width: (boxRect.width / editorRect.width) * posterSize.width,
+    height: (boxRect.height / editorRect.height) * posterSize.height,
+  });
+}
+
+function startSubjectDrag(event, mode) {
+  if (!currentSubjectBox) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const editorRect = subjectEditor.getBoundingClientRect();
+  const boxRect = subjectBox.getBoundingClientRect();
+  subjectDrag = {
+    mode,
+    startX: event.clientX,
+    startY: event.clientY,
+    editorWidth: editorRect.width,
+    editorHeight: editorRect.height,
+    left: boxRect.left - editorRect.left,
+    top: boxRect.top - editorRect.top,
+    width: boxRect.width,
+    height: boxRect.height,
+  };
+  subjectBox.setPointerCapture?.(event.pointerId);
+}
+
+function updateSubjectDrag(event) {
+  if (!subjectDrag) return;
+  const minWidth = subjectDrag.editorWidth * 0.14;
+  const minHeight = subjectDrag.editorHeight * 0.12;
+  const deltaX = event.clientX - subjectDrag.startX;
+  const deltaY = event.clientY - subjectDrag.startY;
+  let left = subjectDrag.left;
+  let top = subjectDrag.top;
+  let width = subjectDrag.width;
+  let height = subjectDrag.height;
+
+  if (subjectDrag.mode === "resize") {
+    width = Math.min(subjectDrag.editorWidth - left, Math.max(minWidth, subjectDrag.width + deltaX));
+    height = Math.min(subjectDrag.editorHeight - top, Math.max(minHeight, subjectDrag.height + deltaY));
+  } else {
+    left = Math.min(subjectDrag.editorWidth - width, Math.max(0, subjectDrag.left + deltaX));
+    top = Math.min(subjectDrag.editorHeight - height, Math.max(0, subjectDrag.top + deltaY));
+  }
+
+  subjectBox.style.left = `${left}px`;
+  subjectBox.style.top = `${top}px`;
+  subjectBox.style.width = `${width}px`;
+  subjectBox.style.height = `${height}px`;
+}
+
+function finishSubjectDrag() {
+  if (!subjectDrag) return;
+  manualSubjectBox = getSubjectBoxFromEditor();
+  currentSubjectBox = manualSubjectBox;
+  subjectDrag = null;
+}
+
+function drawChalkDoodles(ctx, width, height, subjectBox) {
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+
+  drawChalkLine(ctx, [[34, 38], [190, 30], [392, 42], [620, 32], [862, 44]], 9);
+  drawChalkLine(ctx, [[28, 40], [38, 260], [30, 520], [42, 830], [34, 1240]], 9);
+  drawChalkLine(ctx, [[866, 48], [852, 282], [872, 548], [858, 846], [870, 1238]], 9);
+  drawChalkLine(ctx, [[38, 1242], [250, 1256], [520, 1240], [866, 1250]], 9);
+
+  drawSubjectOutline(ctx, subjectBox);
+  drawChalkLine(ctx, [[180, 680], [115, 746], [250, 708], [215, 815]], 14);
+  drawChalkLine(ctx, [[112, 920], [335, 912]], 12);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.92)";
+  ctx.lineWidth = 10;
+  ctx.lineCap = "round";
+  ctx.setLineDash([52, 32]);
+  ctx.beginPath();
+  ctx.arc(662, 310, 130, -0.35, Math.PI * 1.25);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.ellipse(600, 150, 88, 36, 0.72, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(520, 168);
+  ctx.lineTo(705, 182);
+  ctx.lineTo(785, 132);
+  ctx.lineTo(724, 222);
+  ctx.lineTo(620, 200);
+  ctx.stroke();
+
+  ctx.lineWidth = 13;
+  ctx.beginPath();
+  ctx.ellipse(342, 455, 20, 44, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(420, 452, 20, 44, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.arc(382, 515, 15, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  drawChalkLine(ctx, [[72, 965], [46, 1005], [74, 1040]], 8);
+  drawChalkLine(ctx, [[800, 1030], [848, 1060], [810, 1098]], 8);
+  ctx.restore();
+}
+
+function drawOutlinedText(ctx, text, x, y, options = {}) {
+  const {
+    font = "bold 54px sans-serif",
+    fill = "#ffffff",
+    stroke = "rgba(255,255,255,0.96)",
+    shadow = "rgba(20,32,28,0.38)",
+    lineWidth = 10,
+    align = "left",
+  } = options;
+  ctx.save();
+  ctx.font = font;
+  ctx.textAlign = align;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.shadowColor = shadow;
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = lineWidth;
+  ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = fill;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawWrappedOutlinedText(ctx, lines, x, y, lineHeight, options = {}) {
+  lines.forEach((line, index) => {
+    drawOutlinedText(ctx, line, x, y + index * lineHeight, options);
+  });
+}
+
+async function generateEntryPoster(entryId) {
+  const entry = entries.find((item) => item.id === entryId);
+  if (!entry) return;
+  currentPosterEntryId = entryId;
+  const canvas = document.createElement("canvas");
+  const { width, height } = posterSize;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  if (entry.imageUrl) {
+    try {
+      const image = await loadImageFromUrl(entry.imageUrl);
+      drawCoverImage(ctx, image, 0, 0, width, height);
+    } catch (error) {
+      drawSkyFallback(ctx, width, height);
+    }
+  } else {
+    drawSkyFallback(ctx, width, height);
+  }
+
+  const savedSubjectBox = manualSubjectBoxes.get(entryId);
+  const subjectBox = savedSubjectBox
+    ? clampSubjectBox(savedSubjectBox, width, height)
+    : detectSubjectBox(canvas, width, height);
+  currentSubjectBox = subjectBox;
+  manualSubjectBox = savedSubjectBox || null;
+
+  const soft = ctx.createLinearGradient(0, 0, 0, height);
+  soft.addColorStop(0, "rgba(0,0,0,0.02)");
+  soft.addColorStop(0.54, "rgba(0,0,0,0)");
+  soft.addColorStop(0.86, "rgba(20,32,28,0.24)");
+  soft.addColorStop(1, "rgba(10,22,20,0.5)");
+  ctx.fillStyle = soft;
+  ctx.fillRect(0, 0, width, height);
+
+  const type = typeMap[entry.type];
+  const isCoveredWhisper = entry.type === "whisper" && entry.locked;
+  const posterText = isCoveredWhisper
+    ? "这条蛐蛐还盖着，等准备好再拆开。"
+    : entry.body;
+  posterEntryTitle = entry.title || "两人即宇宙";
+
+  ctx.font = "bold 58px sans-serif";
+  const titleLines = wrapCanvasText(ctx, entry.title, width - 140, 2);
+  ctx.font = "34px sans-serif";
+  const lines = wrapCanvasText(ctx, posterText, width - 140, 4);
+  const textLayout = chooseTextLayout(subjectBox, width, height, titleLines.length, lines.length);
+
+  drawChalkDoodles(ctx, width, height, subjectBox);
+
+  drawWrappedOutlinedText(ctx, titleLines, textLayout.x, textLayout.y + 62, 70, {
+    font: "bold 58px sans-serif",
+    fill: "#31433d",
+    stroke: "rgba(255,255,255,0.94)",
+    lineWidth: 14,
+  });
+
+  drawWrappedOutlinedText(ctx, lines, textLayout.x + 4, textLayout.y + 62 + titleLines.length * 70 + 24, 46, {
+    font: "34px sans-serif",
+    fill: "#405950",
+    stroke: "rgba(255,255,255,0.92)",
+    lineWidth: 10,
+    shadow: "rgba(20,32,28,0.3)",
+  });
+
+  const tagY = Math.min(height - 50, textLayout.y + textLayout.height - 12);
+  drawOutlinedText(ctx, `#${type.tag}`, textLayout.x + 4, tagY, {
+    font: "bold 30px sans-serif",
+    fill: "#4f806f",
+    stroke: "rgba(255,255,255,0.95)",
+    lineWidth: 9,
+  });
+  drawOutlinedText(ctx, "两人即宇宙", width - 62, height - 40, {
+    font: "bold 28px sans-serif",
+    fill: "#31433d",
+    stroke: "rgba(255,255,255,0.9)",
+    lineWidth: 8,
+    align: "right",
+  });
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      posterBlob = blob;
+      if (posterUrl) URL.revokeObjectURL(posterUrl);
+      posterUrl = URL.createObjectURL(blob);
+      entryPosterImage.src = posterUrl;
+      posterModal.classList.add("active");
+      posterModal.setAttribute("aria-hidden", "false");
+      setSubjectEditorActive(false);
+      requestAnimationFrame(() => syncSubjectBoxToEditor(subjectBox));
+      resolve(blob);
+    }, "image/png");
+  });
+}
+
+function downloadPoster() {
+  if (!posterUrl) return;
+  const link = document.createElement("a");
+  link.href = posterUrl;
+  link.download = `${posterEntryTitle}-分享海报.png`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function closePosterModal() {
+  posterModal.classList.remove("active");
+  posterModal.setAttribute("aria-hidden", "true");
+  setSubjectEditorActive(false);
+  subjectDrag = null;
+}
+
+async function sharePoster() {
+  if (!posterBlob) return;
+  const file = new File([posterBlob], `${posterEntryTitle}-分享海报.png`, { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({
+      title: "两人即宇宙",
+      text: "分享一张我们的小宇宙海报",
+      files: [file],
+    });
+    return;
+  }
+  downloadPoster();
+  showToast("当前浏览器不支持直接分享，已下载图片");
+}
+
 function publishEntry() {
   const meta = typeMap[currentType];
   const title = entryTitle.value.trim() || meta.title;
@@ -1177,6 +1726,35 @@ shareInviteButton.addEventListener("click", () => {
 downloadInviteButton.addEventListener("click", downloadInviteCard);
 document.querySelector("#backButton").addEventListener("click", () => switchTab("home"));
 document.querySelector("#recordAddButton").addEventListener("click", () => openComposer("moment"));
+document.querySelector("#closePosterModal").addEventListener("click", closePosterModal);
+entryPosterAdjustButton.addEventListener("click", () => {
+  if (!currentSubjectBox) return;
+  const nextActive = !subjectEditor.classList.contains("active");
+  setSubjectEditorActive(nextActive);
+  if (nextActive) {
+    syncSubjectBoxToEditor(currentSubjectBox);
+    showToast("拖动主角框，尽量把人物或重点物体圈住");
+  }
+});
+entryPosterApplyButton.addEventListener("click", () => {
+  if (!currentPosterEntryId) return;
+  const nextBox = getSubjectBoxFromEditor();
+  if (!nextBox) return;
+  manualSubjectBox = nextBox;
+  manualSubjectBoxes.set(currentPosterEntryId, nextBox);
+  generateEntryPoster(currentPosterEntryId).then(() => showToast("已按新的主角位置重新生成"));
+});
+entryPosterDownloadButton.addEventListener("click", downloadPoster);
+entryPosterShareButton.addEventListener("click", () => {
+  sharePoster().catch(() => showToast("分享被取消或当前浏览器不支持"));
+});
+subjectBox.addEventListener("pointerdown", (event) => startSubjectDrag(event, "move"));
+subjectBox.querySelector("i").addEventListener("pointerdown", (event) => startSubjectDrag(event, "resize"));
+window.addEventListener("pointermove", updateSubjectDrag);
+window.addEventListener("pointerup", finishSubjectDrag);
+window.addEventListener("resize", () => {
+  if (subjectEditor.classList.contains("active")) syncSubjectBoxToEditor(currentSubjectBox);
+});
 document.querySelector("#resetGraphButton").addEventListener("click", () => {
   removedKeywords.clear();
   renderGraph();
@@ -1201,6 +1779,11 @@ feedList.addEventListener("click", (event) => {
   const completeWishButton = event.target.closest("[data-complete-wish]");
   const resetWishButton = event.target.closest("[data-reset-wish]");
   const reactionButton = event.target.closest("[data-react-entry]");
+  const posterButton = event.target.closest("[data-entry-poster]");
+  if (posterButton) {
+    generateEntryPoster(Number(posterButton.dataset.entryPoster)).then(() => showToast("记录海报已生成"));
+    return;
+  }
   if (reactionButton) {
     toggleReaction(Number(reactionButton.dataset.reactEntry), reactionButton.dataset.reaction);
     return;
@@ -1245,6 +1828,7 @@ document.querySelector("#recordView").addEventListener("click", (event) => {
   const completeWishButton = event.target.closest("[data-complete-wish]");
   const resetWishButton = event.target.closest("[data-reset-wish]");
   const reactionButton = event.target.closest("[data-react-entry]");
+  const posterButton = event.target.closest("[data-entry-poster]");
 
   if (folder) {
     selectedRecordType = folder.dataset.recordType;
@@ -1263,6 +1847,11 @@ document.querySelector("#recordView").addEventListener("click", (event) => {
     const id = Number(commentButton.dataset.addComment);
     const input = recordDetail.querySelector(`[data-comment-input="${id}"]`);
     addComment(id, input?.value || "");
+    return;
+  }
+
+  if (posterButton) {
+    generateEntryPoster(Number(posterButton.dataset.entryPoster)).then(() => showToast("记录海报已生成"));
     return;
   }
 
@@ -1387,6 +1976,10 @@ inviteModal.addEventListener("click", (event) => {
 
 profileModal.addEventListener("click", (event) => {
   if (event.target === profileModal) closeProfileEditor();
+});
+
+posterModal.addEventListener("click", (event) => {
+  if (event.target === posterModal) closePosterModal();
 });
 
 const inviteParam = new URLSearchParams(window.location.search).get("invite");

@@ -254,6 +254,34 @@
       </section>
     </div>
 
+    <div class="modal-backdrop" id="posterModal" aria-hidden="true">
+      <section class="modal-card poster-modal-card" role="dialog" aria-modal="true" aria-labelledby="posterModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">记录海报</p>
+            <h2 id="posterModalTitle">把这条记录分享出去</h2>
+          </div>
+          <button class="icon-button" id="closePosterModal" aria-label="关闭">×</button>
+        </div>
+
+        <div class="poster-preview active">
+          <img id="entryPosterImage" alt="由记录生成的分享海报" />
+          <div class="subject-editor" id="subjectEditor" aria-hidden="true">
+            <div class="subject-box" id="subjectBox">
+              <span>主角</span>
+              <i></i>
+            </div>
+          </div>
+        </div>
+        <div class="poster-actions active">
+          <button class="media-button" id="entryPosterAdjustButton">调整主角</button>
+          <button class="media-button" id="entryPosterApplyButton">应用位置</button>
+          <button class="media-button" id="entryPosterDownloadButton">下载海报</button>
+          <button class="primary-button" id="entryPosterShareButton">分享海报</button>
+        </div>
+      </section>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script src="app.js"></script>
