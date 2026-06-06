@@ -374,6 +374,17 @@ button {
   box-shadow: inset 0 0 0 1px rgba(67, 101, 90, 0.06);
 }
 
+.entry-image {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  margin-top: 12px;
+  border: 6px solid #fff;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px rgba(67, 101, 90, 0.06);
+}
+
 .voice-pill {
   display: flex;
   align-items: center;
@@ -393,6 +404,11 @@ button {
   height: 10px;
   border-radius: 50%;
   background: currentColor;
+}
+
+.entry-audio {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .read-state {
@@ -851,6 +867,36 @@ button {
   color: #4f806f;
 }
 
+.image-preview {
+  display: none;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f8fcfa;
+}
+
+.image-preview.active {
+  display: grid;
+}
+
+.image-preview img {
+  width: 100%;
+  max-height: 180px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.image-preview button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 850;
+}
+
 .invite-preview {
   margin: 8px 0 14px;
   padding: 10px;
@@ -903,6 +949,11 @@ button {
 
 .voice-preview small {
   color: var(--muted);
+}
+
+.voice-preview audio {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .toast {

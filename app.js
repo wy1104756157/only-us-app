@@ -8,8 +8,14 @@ const typeMap = {
 };
 
 let currentType = "moment";
-let hasVoice = false;
-let hasImage = false;
+let selectedImageUrl = "";
+let selectedImageName = "";
+let recordedAudioUrl = "";
+let recordedAudioBlob = null;
+let mediaRecorder = null;
+let recordingStartedAt = 0;
+let recordingTimer = null;
+let isRecording = false;
 let selectedKeyword = "";
 let isJoined = true;
 const inviteCode = "LOVE-0626";
@@ -53,6 +59,7 @@ const entries = [
     body: "本来只是普通的一天，但你说这片云像我们第一次旅行时看到的那一朵。",
     time: "今天 19:42",
     image: true,
+    imageUrl: "",
     voice: false,
     state: "TA 已看 · 20:16",
     unreadForMe: false,
@@ -66,6 +73,7 @@ const entries = [
     time: "今天 15:08",
     image: false,
     voice: true,
+    audioUrl: "",
     state: "你已认领 · 等待完成",
     unreadForMe: true,
   },
@@ -78,6 +86,7 @@ const entries = [
     time: "昨天 23:18",
     image: false,
     voice: true,
+    audioUrl: "",
     state: "等待 TA 拆开",
     locked: true,
     unreadForMe: false,
@@ -100,9 +109,14 @@ const modalType = document.querySelector("#modalType");
 const modalTitle = document.querySelector("#modalTitle");
 const entryTitle = document.querySelector("#entryTitle");
 const entryBody = document.querySelector("#entryBody");
+const imageInput = document.querySelector("#imageInput");
 const imageToggle = document.querySelector("#imageToggle");
 const voiceToggle = document.querySelector("#voiceToggle");
 const voicePreview = document.querySelector("#voicePreview");
+const imagePreview = document.querySelector("#imagePreview");
+const voiceDuration = document.querySelector("#voiceDuration");
+const voiceStatus = document.querySelector("#voiceStatus");
+const voicePlayer = document.querySelector("#voicePlayer");
 const toast = document.querySelector("#toast");
 const unreadBadges = [...document.querySelectorAll("[data-unread-type]")];
 const graphStage = document.querySelector("#graphStage");
@@ -139,8 +153,8 @@ function renderFeed() {
           </div>
           <h3>${entry.title}</h3>
           <p>${body}</p>
-          ${entry.image ? `<div class="photo-strip">图片记录</div>` : ""}
-          ${entry.voice ? `<div class="voice-pill">语音 0:${entry.type === "wish" ? "12" : "18"}</div>` : ""}
+          ${entry.image ? renderImageBlock(entry) : ""}
+          ${entry.voice ? renderVoiceBlock(entry) : ""}
           <div class="read-state">
             ${readLabel}
             <span>${entry.type === "whisper" ? "拆信记录" : "浏览记录"}</span>
@@ -149,6 +163,20 @@ function renderFeed() {
       `;
     })
     .join("");
+}
+
+function renderImageBlock(entry) {
+  if (entry.imageUrl) {
+    return `<img class="entry-image" src="${entry.imageUrl}" alt="${entry.title}的图片" />`;
+  }
+  return `<div class="photo-strip">图片记录</div>`;
+}
+
+function renderVoiceBlock(entry) {
+  if (entry.audioUrl) {
+    return `<audio class="entry-audio" src="${entry.audioUrl}" controls></audio>`;
+  }
+  return `<div class="voice-pill">语音 0:${entry.type === "wish" ? "12" : "18"}</div>`;
 }
 
 function getVisibleText(entry) {
@@ -297,12 +325,22 @@ function openComposer(type = "moment") {
   modalTitle.textContent = meta.title;
   entryTitle.value = "";
   entryBody.value = "";
-  hasVoice = false;
-  hasImage = false;
+  selectedImageUrl = "";
+  selectedImageName = "";
+  recordedAudioUrl = "";
+  recordedAudioBlob = null;
+  stopRecordingTimer();
+  if (isRecording && mediaRecorder?.state === "recording") mediaRecorder.stop();
+  isRecording = false;
   imageToggle.classList.remove("active");
   voiceToggle.classList.remove("active");
-  voiceToggle.textContent = "按住说话";
+  voiceToggle.textContent = "开始录音";
+  imagePreview.classList.remove("active");
+  imagePreview.innerHTML = "";
   voicePreview.classList.remove("active");
+  voiceDuration.textContent = "0:00";
+  voiceStatus.textContent = "录音会随记录一起发送";
+  voicePlayer.removeAttribute("src");
   [...typePicker.querySelectorAll("button")].forEach((button) => {
     button.classList.toggle("active", button.dataset.type === type);
   });
@@ -321,6 +359,84 @@ function showToast(message) {
   toast.classList.add("show");
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function formatSeconds(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = String(total % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function stopRecordingTimer() {
+  if (recordingTimer) clearInterval(recordingTimer);
+  recordingTimer = null;
+}
+
+function updateImagePreview() {
+  if (!selectedImageUrl) {
+    imagePreview.classList.remove("active");
+    imagePreview.innerHTML = "";
+    imageToggle.textContent = "添加图片";
+    imageToggle.classList.remove("active");
+    return;
+  }
+  imagePreview.classList.add("active");
+  imagePreview.innerHTML = `
+    <img src="${selectedImageUrl}" alt="已选择图片" />
+    <button type="button" id="removeImageButton">移除图片</button>
+  `;
+  imageToggle.textContent = selectedImageName || "更换图片";
+  imageToggle.classList.add("active");
+  document.querySelector("#removeImageButton").addEventListener("click", () => {
+    URL.revokeObjectURL(selectedImageUrl);
+    selectedImageUrl = "";
+    selectedImageName = "";
+    imageInput.value = "";
+    updateImagePreview();
+  });
+}
+
+async function startRecording() {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    showToast("当前浏览器不支持录音，请在手机浏览器或 HTTPS 页面中尝试");
+    return;
+  }
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const chunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.addEventListener("dataavailable", (event) => {
+    if (event.data.size > 0) chunks.push(event.data);
+  });
+  mediaRecorder.addEventListener("stop", () => {
+    stream.getTracks().forEach((track) => track.stop());
+    recordedAudioBlob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
+    if (recordedAudioUrl) URL.revokeObjectURL(recordedAudioUrl);
+    recordedAudioUrl = URL.createObjectURL(recordedAudioBlob);
+    voicePlayer.src = recordedAudioUrl;
+    voiceStatus.textContent = "录音完成，可以播放预览";
+    voiceToggle.textContent = "重新录音";
+    voiceToggle.classList.add("active");
+    isRecording = false;
+    stopRecordingTimer();
+  });
+
+  recordingStartedAt = Date.now();
+  voicePreview.classList.add("active");
+  voicePlayer.removeAttribute("src");
+  voiceStatus.textContent = "正在录音，点击停止";
+  voiceToggle.textContent = "停止录音";
+  voiceToggle.classList.add("active");
+  isRecording = true;
+  recordingTimer = setInterval(() => {
+    voiceDuration.textContent = formatSeconds(Date.now() - recordingStartedAt);
+  }, 250);
+  mediaRecorder.start();
+}
+
+function stopRecording() {
+  if (mediaRecorder?.state === "recording") mediaRecorder.stop();
 }
 
 function roundedRect(ctx, x, y, width, height, radius) {
@@ -492,8 +608,10 @@ function publishEntry() {
     title,
     body,
     time: "刚刚",
-    image: hasImage || currentType === "moment",
-    voice: hasVoice,
+    image: Boolean(selectedImageUrl) || currentType === "moment",
+    imageUrl: selectedImageUrl,
+    voice: Boolean(recordedAudioUrl),
+    audioUrl: recordedAudioUrl,
     state: currentType === "whisper" ? "等待 TA 拆开" : "等待 TA 查看",
     locked: currentType === "whisper",
     unreadForMe: false,
@@ -597,16 +715,29 @@ document.querySelector("#graphView").addEventListener("click", (event) => {
 });
 
 imageToggle.addEventListener("click", () => {
-  hasImage = !hasImage;
-  imageToggle.classList.toggle("active", hasImage);
-  showToast(hasImage ? "已添加一张图片占位" : "已移除图片");
+  imageInput.click();
 });
 
-voiceToggle.addEventListener("click", () => {
-  hasVoice = !hasVoice;
-  voiceToggle.classList.toggle("active", hasVoice);
-  voicePreview.classList.toggle("active", hasVoice);
-  voiceToggle.textContent = hasVoice ? "重新录音" : "按住说话";
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files?.[0];
+  if (!file) return;
+  if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
+  selectedImageUrl = URL.createObjectURL(file);
+  selectedImageName = file.name.length > 8 ? "已选图片" : file.name;
+  updateImagePreview();
+  showToast("图片已添加");
+});
+
+voiceToggle.addEventListener("click", async () => {
+  if (isRecording) {
+    stopRecording();
+    return;
+  }
+  try {
+    await startRecording();
+  } catch (error) {
+    showToast("没有获得麦克风权限，或当前环境不支持录音");
+  }
 });
 
 modal.addEventListener("click", (event) => {

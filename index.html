@@ -195,13 +195,16 @@
 
         <div class="media-row">
           <button class="media-button" id="imageToggle">添加图片</button>
-          <button class="media-button" id="voiceToggle">按住说话</button>
+          <button class="media-button" id="voiceToggle">开始录音</button>
         </div>
+        <input id="imageInput" type="file" accept="image/*" capture="environment" hidden />
+        <div class="image-preview" id="imagePreview"></div>
 
         <div class="voice-preview" id="voicePreview">
           <span></span>
-          <strong>0:18</strong>
-          <small>松开后会随记录一起发送</small>
+          <strong id="voiceDuration">0:00</strong>
+          <small id="voiceStatus">录音会随记录一起发送</small>
+          <audio id="voicePlayer" controls></audio>
         </div>
 
         <button class="primary-button full" id="publishButton">发布到基地</button>
