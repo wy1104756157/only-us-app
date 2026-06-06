@@ -34,16 +34,21 @@
 
         <section class="view active" id="homeView">
           <div class="hero-panel">
-            <div class="avatar-row">
-              <div class="avatar">你</div>
+            <button class="hero-edit" id="editProfileButton">编辑</button>
+            <div class="avatar-row" aria-label="双人昵称">
+              <div class="avatar" id="meAvatar">你</div>
               <div class="bind-line"></div>
-              <div class="avatar soft">TA</div>
+              <div class="avatar soft" id="partnerAvatar">TA</div>
             </div>
             <p>在一起</p>
-            <strong>238 天</strong>
-            <span>距离 TA 的生日还有 12 天</span>
+            <strong><span id="togetherDays">238</span> 天</strong>
+            <span id="heroReminder">距离 TA 的生日还有 12 天</span>
           </div>
 
+          <div class="quick-header">
+            <span>快速记录</span>
+            <button id="toggleQuickButton">只看常用</button>
+          </div>
           <div class="quick-strip">
             <button class="quick-action" data-compose="moment" data-unread-type="moment">
               <span class="unread-badge" aria-label="未读心动瞬间"></span>
@@ -56,6 +61,18 @@
             <button class="quick-action" data-compose="whisper" data-unread-type="whisper">
               <span class="unread-badge" aria-label="未读蛐蛐"></span>
               留条蛐蛐
+            </button>
+            <button class="quick-action optional-action" data-compose="date" data-unread-type="date">
+              <span class="unread-badge" aria-label="未读重要时间"></span>
+              重要时间
+            </button>
+            <button class="quick-action optional-action" data-compose="note" data-unread-type="note">
+              <span class="unread-badge" aria-label="未读随记随想"></span>
+              随记随想
+            </button>
+            <button class="quick-action optional-action" data-compose="chat" data-unread-type="chat">
+              <span class="unread-badge" aria-label="未读聊天存档"></span>
+              聊天存档
             </button>
           </div>
 
@@ -72,44 +89,10 @@
               <p class="eyebrow">记录抽屉</p>
               <h2>把小事放进这里</h2>
             </div>
+            <button id="recordAddButton">新建记录</button>
           </div>
-          <div class="module-grid">
-            <button class="module-card coral" data-compose="moment">
-              <span>✨</span>
-              <strong>Moments</strong>
-              <em>心动或感动的瞬间</em>
-            </button>
-            <button class="module-card mint" data-compose="wish">
-              <span>🎁</span>
-              <strong>心语心愿</strong>
-              <em>想要、期待与暗示</em>
-            </button>
-            <button class="module-card gold" data-compose="date">
-              <span>⏳</span>
-              <strong>重要时间</strong>
-              <em>生日、纪念日、倒计时</em>
-            </button>
-            <button class="module-card blue" data-compose="note">
-              <span>💭</span>
-              <strong>随记随想</strong>
-              <em>聊天、灵感、日常碎片</em>
-            </button>
-            <button class="module-card plum wide" data-compose="whisper">
-              <span>🤫</span>
-              <strong>蛐蛐</strong>
-              <em>准备好再拆开的悄悄话</em>
-            </button>
-            <button class="module-card mint" data-compose="chat">
-              <span>💬</span>
-              <strong>聊天存档</strong>
-              <em>粘贴微信聊天记录</em>
-            </button>
-            <button class="module-card blue" id="openGraphButton">
-              <span>🫧</span>
-              <strong>关键词花园</strong>
-              <em>自动生成关系图谱</em>
-            </button>
-          </div>
+          <div class="record-grid" id="recordModuleGrid"></div>
+          <div class="record-detail" id="recordDetail"></div>
         </section>
 
         <section class="view" id="graphView">
@@ -193,6 +176,17 @@
           <textarea id="entryBody" rows="4" maxlength="160" placeholder="写下只给 TA 看的话"></textarea>
         </label>
 
+        <div class="date-options" id="dateOptions">
+          <label class="field">
+            <span>具体日期</span>
+            <input id="eventDateInput" type="date" />
+          </label>
+          <label class="home-date-toggle">
+            <input id="showOnHomeInput" type="checkbox" />
+            <span>把这个重要时间显示在首页</span>
+          </label>
+        </div>
+
         <div class="media-row">
           <button class="media-button" id="imageToggle">添加图片</button>
           <button class="media-button" id="voiceToggle">开始录音</button>
@@ -230,6 +224,33 @@
           <button class="media-button" id="downloadInviteButton">下载图片</button>
         </div>
         <p class="share-hint">手机浏览器会优先调起系统分享；电脑端会下载邀请图片。</p>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="profileModal" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">首页资料</p>
+            <h2 id="profileModalTitle">编辑你们的信息</h2>
+          </div>
+          <button class="icon-button" id="closeProfileModal" aria-label="关闭">×</button>
+        </div>
+
+        <label class="field">
+          <span>我的昵称</span>
+          <input id="meNameInput" maxlength="8" placeholder="例如 小王" />
+        </label>
+        <label class="field">
+          <span>TA 的昵称</span>
+          <input id="partnerNameInput" maxlength="8" placeholder="例如 小余" />
+        </label>
+        <label class="field">
+          <span>在一起天数</span>
+          <input id="daysInput" type="number" min="0" max="99999" inputmode="numeric" placeholder="238" />
+        </label>
+
+        <button class="primary-button full" id="saveProfileButton">保存</button>
       </section>
     </div>
 

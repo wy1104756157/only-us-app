@@ -1,3 +1,1709 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>只给我们</title>
+    <style>
+:root {
+  color-scheme: light;
+  --bg: #f7fbf8;
+  --surface: #ffffff;
+  --ink: #31433d;
+  --muted: #7d8d86;
+  --line: #e3eee8;
+  --primary: #6eae99;
+  --primary-soft: #eef8f4;
+  --rose-soft: #fff0ee;
+  --cream-soft: #fff7df;
+  --blue-soft: #eef8fb;
+  --lavender-soft: #f6f3fb;
+  --shadow: 0 20px 56px rgba(67, 101, 90, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #f2fbf6 0%, #fffaf0 52%, #f2fbfd 100%);
+  color: var(--ink);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.phone-shell {
+  width: min(430px, 100vw);
+  min-height: 100vh;
+  padding: 18px;
+  display: grid;
+  place-items: center;
+}
+
+.app-screen {
+  position: relative;
+  width: 100%;
+  height: min(860px, calc(100vh - 36px));
+  min-height: 680px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 32px;
+  background: #fbfefb;
+  box-shadow: var(--shadow);
+}
+
+.topbar {
+  height: 88px;
+  padding: 18px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar h1,
+.modal-header h2,
+.section-heading h2,
+.base-card h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.topbar h1 {
+  color: #3d6659;
+  font-size: 25px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font-size: 24px;
+  box-shadow: 0 10px 22px rgba(67, 101, 90, 0.08);
+}
+
+.view {
+  display: none;
+  height: calc(100% - 164px);
+  padding: 0 18px 96px;
+  overflow-y: auto;
+}
+
+.view.active {
+  display: block;
+}
+
+.hero-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid #dceee6;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #eef8f4 0%, #fffaf0 100%);
+  box-shadow: 0 16px 34px rgba(67, 101, 90, 0.1);
+}
+
+.hero-edit {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(110, 174, 153, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #4f806f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.hero-panel::after {
+  content: "LOVE";
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(61, 102, 89, 0.42);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 900;
+}
+
+.avatar.soft {
+  background: #f0b79e;
+}
+
+.bind-line {
+  width: 56px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.hero-panel p {
+  margin: 0;
+  color: #6f827b;
+}
+
+.hero-panel strong {
+  display: block;
+  margin: 4px 0;
+  color: #3d6659;
+  font-size: 48px;
+  line-height: 1;
+}
+
+#togetherDays {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.hero-panel span {
+  color: #6f827b;
+  font-weight: 800;
+}
+
+.quick-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 2px 8px;
+  color: #405950;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.quick-header button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.join-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 24px;
+  border: 1px solid #dceee6;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #ffffff 0%, #eef8f4 100%);
+  box-shadow: 0 16px 34px rgba(67, 101, 90, 0.1);
+}
+
+.join-card h2 {
+  margin: 0;
+  color: #3d6659;
+  font-size: 25px;
+}
+
+.join-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.join-field {
+  margin-bottom: 0;
+}
+
+.text-button {
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.quick-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 22px;
+}
+
+.quick-strip.collapsed .optional-action {
+  display: none;
+}
+
+.quick-action,
+.section-heading button,
+.type-picker button,
+.media-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+}
+
+.quick-action {
+  position: relative;
+  min-width: 0;
+  min-height: 48px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: 0 8px 18px rgba(67, 101, 90, 0.07);
+}
+
+.quick-action:hover,
+.record-folder:hover {
+  transform: translateY(-1px);
+}
+
+.unread-badge {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  min-width: 20px;
+  height: 20px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 8px 16px rgba(67, 101, 90, 0.16);
+}
+
+.unread-badge.show {
+  display: flex;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-heading.roomy {
+  margin: 10px 0 18px;
+}
+
+.section-heading.compact {
+  margin-top: 18px;
+}
+
+.section-heading h2 {
+  color: #405950;
+  font-size: 20px;
+}
+
+.section-heading button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.feed {
+  display: grid;
+  gap: 12px;
+}
+
+.feed-card {
+  position: relative;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(67, 101, 90, 0.07);
+}
+
+.feed-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 18px;
+  width: 42px;
+  height: 4px;
+  border-radius: 0 0 999px 999px;
+  background: var(--card-color, var(--primary-soft));
+}
+
+.feed-top,
+.feed-meta,
+.read-state {
+  display: flex;
+  align-items: center;
+}
+
+.feed-top {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  max-width: 58%;
+  flex-shrink: 0;
+}
+
+.entry-actions button {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.entry-actions button:first-child {
+  background: var(--primary-soft);
+  color: #4f806f;
+}
+
+.entry-actions .stamp-action {
+  border-color: #f0d7a4;
+  background: #fff7df;
+  color: #8a6a22;
+  box-shadow: 0 8px 16px rgba(138, 106, 34, 0.1);
+}
+
+.entry-actions .undo-stamp-action {
+  border-color: #dceee6;
+  background: #f8fcfa;
+  color: #6f827b;
+}
+
+.feed-meta {
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: #4f806f;
+  font-weight: 850;
+}
+
+.feed-card h3 {
+  margin: 12px 0 6px;
+  color: #405950;
+  font-size: 17px;
+}
+
+.date-pill {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--cream-soft);
+  color: #82672c;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.wish-stamp {
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 7px 12px;
+  border: 2px solid #e7bd66;
+  border-radius: 999px;
+  color: #8a6a22;
+  background: #fff7df;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(138, 106, 34, 0.12);
+  transform: rotate(-4deg);
+}
+
+.feed-card p {
+  margin: 0;
+  color: #63736e;
+  line-height: 1.55;
+}
+
+.whisper-cover {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 16px;
+  border: 1px dashed #d8cbe2;
+  border-radius: 18px;
+  background:
+    repeating-linear-gradient(135deg, rgba(225, 212, 233, 0.42) 0 8px, rgba(255, 255, 255, 0.62) 8px 16px),
+    #fbf8fc;
+  color: #6d5d73;
+  text-align: center;
+}
+
+.whisper-cover strong {
+  color: #4f4058;
+  font-size: 15px;
+}
+
+.whisper-cover span {
+  color: #7e7184;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.5;
+}
+
+.whisper-cover button {
+  width: fit-content;
+  min-height: 34px;
+  justify-self: center;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #8d7897;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.photo-strip {
+  height: 132px;
+  margin-top: 12px;
+  border: 6px solid #fff;
+  border-radius: 18px;
+  background: var(--card-color, var(--primary-soft));
+  display: grid;
+  place-items: center;
+  color: rgba(64, 85, 79, 0.5);
+  font-weight: 850;
+  box-shadow: inset 0 0 0 1px rgba(67, 101, 90, 0.06);
+}
+
+.entry-image {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  margin-top: 12px;
+  border: 6px solid #fff;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px rgba(67, 101, 90, 0.06);
+}
+
+.voice-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: #4f806f;
+  font-weight: 850;
+}
+
+.voice-pill::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.entry-audio {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.read-state {
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.read-state strong {
+  color: #5f9a86;
+}
+
+.reaction-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reaction-row button {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid #e3eee8;
+  border-radius: 999px;
+  background: #fff;
+  color: #7d8d86;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.reaction-row button.active {
+  border-color: #b8dacd;
+  background: #eef8f4;
+  color: #4f806f;
+  box-shadow: 0 8px 16px rgba(67, 101, 90, 0.08);
+}
+
+.reaction-row span {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.reaction-row em {
+  font-style: normal;
+}
+
+.graph-summary {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.graph-summary strong {
+  color: #405950;
+  font-size: 16px;
+}
+
+.graph-stage {
+  position: relative;
+  height: 230px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg, rgba(227, 238, 232, 0.52) 1px, transparent 1px),
+    linear-gradient(rgba(227, 238, 232, 0.52) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.86);
+  background-size: 38px 38px;
+}
+
+.graph-stage::before,
+.graph-stage::after {
+  content: "";
+  position: absolute;
+  inset: 48px 42px;
+  border: 1px dashed rgba(110, 174, 153, 0.25);
+  border-radius: 50%;
+}
+
+.graph-stage::after {
+  inset: 76px 78px;
+}
+
+.graph-node {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  transform: translate(-50%, -50%);
+  border: 1px solid #d8ebe4;
+  border-radius: 50%;
+  background: #fff;
+  color: #4f806f;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(67, 101, 90, 0.1);
+}
+
+.graph-node.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: #335f50;
+}
+
+.keyword-list {
+  display: grid;
+  gap: 10px;
+}
+
+.keyword-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.keyword-card.active {
+  border-color: #b8dacd;
+  background: #f8fcfa;
+}
+
+.keyword-main {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.keyword-main strong,
+.keyword-main span {
+  display: block;
+}
+
+.keyword-main strong {
+  margin-bottom: 4px;
+  color: #405950;
+  font-size: 15px;
+}
+
+.keyword-main span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keyword-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.keyword-actions button {
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.keyword-actions button:first-child {
+  background: var(--primary-soft);
+  color: #4f806f;
+}
+
+.related-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.related-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.related-item:first-child {
+  border-top: 0;
+}
+
+.related-item strong {
+  color: #405950;
+  font-size: 14px;
+}
+
+.related-item span,
+.empty-text {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.record-grid {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.record-grid[hidden] {
+  display: none;
+}
+
+.record-folder {
+  position: relative;
+  min-height: 94px;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(67, 101, 90, 0.07);
+}
+
+.record-folder::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--folder-color);
+}
+
+.record-folder::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--folder-size);
+  height: 4px;
+  border-radius: 999px 0 0 0;
+  background: var(--folder-color);
+}
+
+.folder-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--folder-color);
+  font-size: 21px;
+}
+
+.folder-main {
+  min-width: 0;
+  display: block;
+}
+
+.folder-main strong,
+.folder-main em {
+  display: block;
+}
+
+.folder-main strong {
+  color: #405950;
+  font-size: 16px;
+}
+
+.folder-main em {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-stats {
+  display: grid;
+  justify-items: end;
+  color: var(--muted);
+}
+
+.folder-stats b {
+  color: #405950;
+  font-size: 22px;
+}
+
+.folder-stats small {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.folder-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.folder-comments {
+  grid-column: 2 / -1;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: #4f806f;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.record-detail {
+  display: grid;
+  gap: 12px;
+}
+
+.record-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.record-detail-head > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.record-detail-head h3 {
+  margin: 0 0 4px;
+  color: #405950;
+  font-size: 18px;
+}
+
+.record-detail-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.record-detail-head button {
+  min-height: 36px;
+  flex-shrink: 0;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.record-detail-head .record-back {
+  width: 42px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--primary);
+}
+
+.record-empty-state {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed #cfe4dc;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
+  text-align: center;
+}
+
+.record-empty-state strong {
+  color: #405950;
+  font-size: 15px;
+}
+
+.record-empty-state span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.record-history {
+  display: grid;
+  gap: 10px;
+}
+
+.compact-card {
+  padding: 13px;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(67, 101, 90, 0.06);
+}
+
+.comment-thread {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.comment-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #f8fcfa;
+  color: #63736e;
+  font-size: 12px;
+}
+
+.comment-item strong {
+  color: #4f806f;
+}
+
+.comment-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.comment-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.comment-box input {
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.comment-box button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.empty-folder {
+  padding: 18px;
+  border: 1px dashed #cfe4dc;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.coral {
+  --module-tint: var(--rose-soft);
+}
+
+.mint {
+  --module-tint: var(--primary-soft);
+}
+
+.gold {
+  --module-tint: var(--cream-soft);
+}
+
+.blue {
+  --module-tint: var(--blue-soft);
+}
+
+.plum {
+  --module-tint: var(--lavender-soft);
+}
+
+.base-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(67, 101, 90, 0.07);
+}
+
+.base-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.invite-code {
+  margin: 18px 0;
+  padding: 18px;
+  border: 2px dashed #a9cdbd;
+  border-radius: 20px;
+  background: var(--primary-soft);
+  color: #4f806f;
+  font-size: 30px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.primary-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 900;
+}
+
+.primary-button.full {
+  width: 100%;
+}
+
+.setting-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.setting-list button {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.setting-list span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tabbar {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  height: 66px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 14px 30px rgba(67, 101, 90, 0.1);
+}
+
+.tab {
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.compose-fab {
+  position: absolute;
+  right: 28px;
+  bottom: 96px;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  box-shadow: 0 14px 28px rgba(67, 101, 90, 0.2);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  background: rgba(61, 82, 75, 0.22);
+  backdrop-filter: blur(8px);
+}
+
+.modal-backdrop.active {
+  display: grid;
+}
+
+.modal-card {
+  width: min(390px, calc(100vw - 36px));
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.invite-modal-card {
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.type-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.type-picker button {
+  min-height: 36px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.type-picker button.active {
+  border-color: transparent;
+  background: var(--primary);
+  color: #fff;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--ink);
+  outline: none;
+}
+
+.field input {
+  height: 46px;
+  padding: 0 14px;
+}
+
+.field textarea {
+  resize: none;
+  padding: 12px 14px;
+}
+
+.date-options {
+  display: none;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fffaf0;
+}
+
+.date-options.active {
+  display: grid;
+}
+
+.date-options .field {
+  margin-bottom: 0;
+}
+
+.home-date-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #82672c;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.home-date-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.media-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.media-button {
+  min-height: 44px;
+  border-radius: 16px;
+  font-weight: 850;
+}
+
+.media-button.active {
+  border-color: #a9cdbd;
+  background: var(--primary-soft);
+  color: #4f806f;
+}
+
+.image-preview {
+  display: none;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f8fcfa;
+}
+
+.image-preview.active {
+  display: grid;
+}
+
+.image-preview img {
+  width: 100%;
+  max-height: 180px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.image-preview button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.invite-preview {
+  margin: 8px 0 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #f8fcfa;
+}
+
+.invite-preview img {
+  display: block;
+  width: 100%;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.invite-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.share-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.voice-preview {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--primary-soft);
+}
+
+.voice-preview.active {
+  display: flex;
+}
+
+.voice-preview span {
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, var(--primary) 0 3px, transparent 3px 7px);
+}
+
+.voice-preview small {
+  color: var(--muted);
+}
+
+.voice-preview audio {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(16px);
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: rgba(49, 67, 61, 0.92);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: 180ms ease;
+  font-size: 14px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 460px) {
+  .phone-shell {
+    padding: 0;
+  }
+
+  .app-screen {
+    height: 100vh;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <main class="phone-shell" aria-label="只给我们小程序原型">
+      <section class="app-screen" id="app">
+        <header class="topbar">
+          <button class="icon-button" id="backButton" aria-label="返回">‹</button>
+          <div>
+            <p class="eyebrow">双人秘密基地</p>
+            <h1>只给我们</h1>
+          </div>
+          <button class="icon-button" id="inviteButton" aria-label="邀请另一半">+</button>
+        </header>
+
+        <section class="view" id="joinView">
+          <div class="join-card">
+            <p class="eyebrow">收到邀请了吗</p>
+            <h2>输入口令进入双人基地</h2>
+            <p>对方分享给你的邀请卡片里会有一串口令。输入后就可以看到同一个秘密空间。</p>
+            <label class="field join-field">
+              <span>基地口令</span>
+              <input id="joinCodeInput" maxlength="16" placeholder="例如 LOVE-0626" />
+            </label>
+            <button class="primary-button full" id="joinBaseButton">确认加入</button>
+            <button class="text-button" id="previewDemoButton">先看看演示空间</button>
+          </div>
+        </section>
+
+        <section class="view active" id="homeView">
+          <div class="hero-panel">
+            <button class="hero-edit" id="editProfileButton">编辑</button>
+            <div class="avatar-row" aria-label="双人昵称">
+              <div class="avatar" id="meAvatar">你</div>
+              <div class="bind-line"></div>
+              <div class="avatar soft" id="partnerAvatar">TA</div>
+            </div>
+            <p>在一起</p>
+            <strong><span id="togetherDays">238</span> 天</strong>
+            <span id="heroReminder">距离 TA 的生日还有 12 天</span>
+          </div>
+
+          <div class="quick-header">
+            <span>快速记录</span>
+            <button id="toggleQuickButton">只看常用</button>
+          </div>
+          <div class="quick-strip">
+            <button class="quick-action" data-compose="moment" data-unread-type="moment">
+              <span class="unread-badge" aria-label="未读心动瞬间"></span>
+              心动瞬间
+            </button>
+            <button class="quick-action" data-compose="wish" data-unread-type="wish">
+              <span class="unread-badge" aria-label="未读心愿"></span>
+              写个心愿
+            </button>
+            <button class="quick-action" data-compose="whisper" data-unread-type="whisper">
+              <span class="unread-badge" aria-label="未读蛐蛐"></span>
+              留条蛐蛐
+            </button>
+            <button class="quick-action optional-action" data-compose="date" data-unread-type="date">
+              <span class="unread-badge" aria-label="未读重要时间"></span>
+              重要时间
+            </button>
+            <button class="quick-action optional-action" data-compose="note" data-unread-type="note">
+              <span class="unread-badge" aria-label="未读随记随想"></span>
+              随记随想
+            </button>
+            <button class="quick-action optional-action" data-compose="chat" data-unread-type="chat">
+              <span class="unread-badge" aria-label="未读聊天存档"></span>
+              聊天存档
+            </button>
+          </div>
+
+          <div class="section-heading">
+            <h2>今日动态</h2>
+            <button id="markReadButton">模拟 TA 查看</button>
+          </div>
+          <div class="feed" id="feedList"></div>
+        </section>
+
+        <section class="view" id="recordView">
+          <div class="section-heading roomy">
+            <div>
+              <p class="eyebrow">记录抽屉</p>
+              <h2>把小事放进这里</h2>
+            </div>
+            <button id="recordAddButton">新建记录</button>
+          </div>
+          <div class="record-grid" id="recordModuleGrid"></div>
+          <div class="record-detail" id="recordDetail"></div>
+        </section>
+
+        <section class="view" id="graphView">
+          <div class="section-heading roomy">
+            <div>
+              <p class="eyebrow">关键词花园</p>
+              <h2>自动生成的记忆图谱</h2>
+            </div>
+          </div>
+          <div class="graph-summary">
+            <strong id="graphSummary">正在整理你们的高频词</strong>
+            <span>所有记录和粘贴的聊天文字都会进入分析；你只需要在这里保留或删除词条。</span>
+          </div>
+          <div class="graph-stage" id="graphStage"></div>
+          <div class="section-heading compact">
+            <h2>高频词条</h2>
+            <button id="resetGraphButton">恢复已删词</button>
+          </div>
+          <div class="keyword-list" id="keywordList"></div>
+          <div class="related-panel">
+            <p class="eyebrow" id="relatedTitle">词条内容</p>
+            <div id="relatedEntries"></div>
+          </div>
+        </section>
+
+        <section class="view" id="baseView">
+          <div class="base-card">
+            <p class="eyebrow">基地状态</p>
+            <h2>已绑定双人空间</h2>
+            <div class="invite-code">LOVE-0626</div>
+            <p>把邀请链接发给另一半后，对方确认加入，就能共同更新和看见这里的所有记录。</p>
+            <button class="primary-button" id="copyInviteButton">生成邀请卡片</button>
+          </div>
+
+          <div class="setting-list">
+            <button id="openJoinButton">输入口令加入 <span>LOVE-0626</span></button>
+            <button>更换基地背景 <span>暖光日记</span></button>
+            <button>提醒设置 <span>纪念日前 1 天</span></button>
+            <button>语音偏好 <span>最长 60 秒</span></button>
+            <button>浏览记录 <span>开启</span></button>
+          </div>
+        </section>
+
+        <nav class="tabbar" aria-label="底部导航">
+          <button class="tab active" data-tab="home">首页</button>
+          <button class="tab" data-tab="record">记录</button>
+          <button class="tab" data-tab="graph">图谱</button>
+          <button class="tab" data-tab="base">基地</button>
+        </nav>
+
+        <button class="compose-fab" id="composeFab" aria-label="记录一下">+</button>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="composeModal" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="modalType">发布记录</p>
+            <h2 id="modalTitle">记录一下</h2>
+          </div>
+          <button class="icon-button" id="closeModal" aria-label="关闭">×</button>
+        </div>
+
+        <div class="type-picker" id="typePicker">
+          <button data-type="moment">Moments</button>
+          <button data-type="wish">心愿</button>
+          <button data-type="date">时间</button>
+          <button data-type="note">随记</button>
+          <button data-type="whisper">蛐蛐</button>
+          <button data-type="chat">聊天</button>
+        </div>
+
+        <label class="field">
+          <span>标题</span>
+          <input id="entryTitle" maxlength="24" placeholder="给这条记录起个名字" />
+        </label>
+
+        <label class="field">
+          <span>内容</span>
+          <textarea id="entryBody" rows="4" maxlength="160" placeholder="写下只给 TA 看的话"></textarea>
+        </label>
+
+        <div class="date-options" id="dateOptions">
+          <label class="field">
+            <span>具体日期</span>
+            <input id="eventDateInput" type="date" />
+          </label>
+          <label class="home-date-toggle">
+            <input id="showOnHomeInput" type="checkbox" />
+            <span>把这个重要时间显示在首页</span>
+          </label>
+        </div>
+
+        <div class="media-row">
+          <button class="media-button" id="imageToggle">添加图片</button>
+          <button class="media-button" id="voiceToggle">开始录音</button>
+        </div>
+        <input id="imageInput" type="file" accept="image/*" capture="environment" hidden />
+        <div class="image-preview" id="imagePreview"></div>
+
+        <div class="voice-preview" id="voicePreview">
+          <span></span>
+          <strong id="voiceDuration">0:00</strong>
+          <small id="voiceStatus">录音会随记录一起发送</small>
+          <audio id="voicePlayer" controls></audio>
+        </div>
+
+        <button class="primary-button full" id="publishButton">发布到基地</button>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="inviteModal" aria-hidden="true">
+      <section class="modal-card invite-modal-card" role="dialog" aria-modal="true" aria-labelledby="inviteModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">邀请卡片</p>
+            <h2 id="inviteModalTitle">把 TA 带进基地</h2>
+          </div>
+          <button class="icon-button" id="closeInviteModal" aria-label="关闭">×</button>
+        </div>
+
+        <div class="invite-preview">
+          <img id="inviteImage" alt="只给我们的邀请卡片" />
+        </div>
+
+        <div class="invite-actions">
+          <button class="primary-button" id="shareInviteButton">分享图片</button>
+          <button class="media-button" id="downloadInviteButton">下载图片</button>
+        </div>
+        <p class="share-hint">手机浏览器会优先调起系统分享；电脑端会下载邀请图片。</p>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="profileModal" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">首页资料</p>
+            <h2 id="profileModalTitle">编辑你们的信息</h2>
+          </div>
+          <button class="icon-button" id="closeProfileModal" aria-label="关闭">×</button>
+        </div>
+
+        <label class="field">
+          <span>我的昵称</span>
+          <input id="meNameInput" maxlength="8" placeholder="例如 小王" />
+        </label>
+        <label class="field">
+          <span>TA 的昵称</span>
+          <input id="partnerNameInput" maxlength="8" placeholder="例如 小余" />
+        </label>
+        <label class="field">
+          <span>在一起天数</span>
+          <input id="daysInput" type="number" min="0" max="99999" inputmode="numeric" placeholder="238" />
+        </label>
+
+        <button class="primary-button full" id="saveProfileButton">保存</button>
+      </section>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
 const typeMap = {
   moment: { label: "Moments", title: "记录心动瞬间", tag: "心动", color: "#ffe1dc", icon: "✨", desc: "心动或感动的瞬间" },
   wish: { label: "心语心愿", title: "写下一个心愿", tag: "心愿", color: "#cde8dc", icon: "🎁", desc: "想要、期待与暗示" },
@@ -1397,3 +3103,8 @@ if (inviteParam) {
 renderProfile();
 renderQuickActions();
 renderFeed();
+
+</script>
+  </body>
+</html>
+
