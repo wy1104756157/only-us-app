@@ -335,6 +335,28 @@ button {
   gap: 12px;
 }
 
+.entry-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.entry-actions button {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.entry-actions button:first-child {
+  background: var(--primary-soft);
+  color: #4f806f;
+}
+
 .feed-meta {
   gap: 8px;
   color: var(--muted);

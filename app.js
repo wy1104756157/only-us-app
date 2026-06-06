@@ -17,6 +17,7 @@ let recordingStartedAt = 0;
 let recordingTimer = null;
 let isRecording = false;
 let selectedKeyword = "";
+let editingEntryId = null;
 let isJoined = true;
 const inviteCode = "LOVE-0626";
 const inviteUrl = "https://wy1104756157.github.io/only-us-app/?invite=LOVE-0626";
@@ -150,6 +151,12 @@ function renderFeed() {
               <span class="tag">${type.tag}</span>
               <span>${entry.author} · ${entry.time}</span>
             </div>
+            ${entry.author === "你" ? `
+              <div class="entry-actions">
+                <button data-edit-entry="${entry.id}">编辑</button>
+                <button data-delete-entry="${entry.id}">删除</button>
+              </div>
+            ` : ""}
           </div>
           <h3>${entry.title}</h3>
           <p>${body}</p>
@@ -319,6 +326,7 @@ function joinBase() {
 }
 
 function openComposer(type = "moment") {
+  editingEntryId = null;
   currentType = type;
   const meta = typeMap[type];
   modalType.textContent = meta.label;
@@ -349,7 +357,18 @@ function openComposer(type = "moment") {
   setTimeout(() => entryTitle.focus(), 60);
 }
 
+function setComposerType(type) {
+  currentType = type;
+  const meta = typeMap[type];
+  modalType.textContent = editingEntryId ? `编辑 ${meta.label}` : meta.label;
+  modalTitle.textContent = editingEntryId ? "修改这条记录" : meta.title;
+  [...typePicker.querySelectorAll("button")].forEach((button) => {
+    button.classList.toggle("active", button.dataset.type === type);
+  });
+}
+
 function closeComposer() {
+  editingEntryId = null;
   modal.classList.remove("active");
   modal.setAttribute("aria-hidden", "true");
 }
@@ -389,12 +408,23 @@ function updateImagePreview() {
   imageToggle.textContent = selectedImageName || "更换图片";
   imageToggle.classList.add("active");
   document.querySelector("#removeImageButton").addEventListener("click", () => {
-    URL.revokeObjectURL(selectedImageUrl);
     selectedImageUrl = "";
     selectedImageName = "";
     imageInput.value = "";
     updateImagePreview();
   });
+}
+
+function hydrateMediaControls() {
+  updateImagePreview();
+  if (recordedAudioUrl) {
+    voicePreview.classList.add("active");
+    voicePlayer.src = recordedAudioUrl;
+    voiceStatus.textContent = "已保留原录音，可重新录音";
+    voiceDuration.textContent = "已录音";
+    voiceToggle.textContent = "重新录音";
+    voiceToggle.classList.add("active");
+  }
 }
 
 async function startRecording() {
@@ -601,6 +631,28 @@ function publishEntry() {
   const title = entryTitle.value.trim() || meta.title;
   const body = entryBody.value.trim() || defaultBody(currentType);
 
+  if (editingEntryId) {
+    const entry = entries.find((item) => item.id === editingEntryId);
+    if (entry) {
+      entry.type = currentType;
+      entry.title = title;
+      entry.body = body;
+      entry.image = Boolean(selectedImageUrl) || currentType === "moment";
+      entry.imageUrl = selectedImageUrl;
+      entry.voice = Boolean(recordedAudioUrl);
+      entry.audioUrl = recordedAudioUrl;
+      entry.locked = currentType === "whisper";
+      entry.state = currentType === "whisper" ? "等待 TA 重新拆开" : "等待 TA 重新查看";
+      entry.time = "刚刚编辑";
+    }
+    editingEntryId = null;
+    renderFeed();
+    switchTab("home");
+    closeComposer();
+    showToast("记录已更新");
+    return;
+  }
+
   entries.unshift({
     id: Date.now(),
     type: currentType,
@@ -621,6 +673,33 @@ function publishEntry() {
   switchTab("home");
   closeComposer();
   showToast("已发布到你们的秘密基地");
+}
+
+function editEntry(entryId) {
+  const entry = entries.find((item) => item.id === entryId);
+  if (!entry) return;
+  openComposer(entry.type);
+  editingEntryId = entry.id;
+  modalType.textContent = `编辑 ${typeMap[entry.type].label}`;
+  modalTitle.textContent = "修改这条记录";
+  entryTitle.value = entry.title;
+  entryBody.value = entry.body;
+  selectedImageUrl = entry.imageUrl || "";
+  selectedImageName = selectedImageUrl ? "已选图片" : "";
+  recordedAudioUrl = entry.audioUrl || "";
+  recordedAudioBlob = null;
+  hydrateMediaControls();
+}
+
+function deleteEntry(entryId) {
+  const index = entries.findIndex((item) => item.id === entryId);
+  if (index === -1) return;
+  const [removed] = entries.splice(index, 1);
+  if (selectedKeyword && !buildKeywordGraph().some((node) => node.word === selectedKeyword)) {
+    selectedKeyword = "";
+  }
+  renderFeed();
+  showToast(`已删除「${removed.title}」`);
 }
 
 function defaultBody(type) {
@@ -676,6 +755,18 @@ document.querySelector("#markReadButton").addEventListener("click", () => {
   showToast("已模拟 TA 查看你的内容");
 });
 
+feedList.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-entry]");
+  const deleteButton = event.target.closest("[data-delete-entry]");
+  if (editButton) {
+    editEntry(Number(editButton.dataset.editEntry));
+    return;
+  }
+  if (deleteButton) {
+    deleteEntry(Number(deleteButton.dataset.deleteEntry));
+  }
+});
+
 document.querySelectorAll("[data-compose]").forEach((button) => {
   button.addEventListener("click", () => openComposer(button.dataset.compose));
 });
@@ -683,7 +774,7 @@ document.querySelectorAll("[data-compose]").forEach((button) => {
 typePicker.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-type]");
   if (!button) return;
-  openComposer(button.dataset.type);
+  setComposerType(button.dataset.type);
 });
 
 document.querySelector("#graphView").addEventListener("click", (event) => {
@@ -721,7 +812,6 @@ imageToggle.addEventListener("click", () => {
 imageInput.addEventListener("change", () => {
   const file = imageInput.files?.[0];
   if (!file) return;
-  if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
   selectedImageUrl = URL.createObjectURL(file);
   selectedImageName = file.name.length > 8 ? "已选图片" : file.name;
   updateImagePreview();
