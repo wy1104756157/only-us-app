@@ -18,6 +18,20 @@
           <button class="icon-button" id="inviteButton" aria-label="邀请另一半">+</button>
         </header>
 
+        <section class="view" id="joinView">
+          <div class="join-card">
+            <p class="eyebrow">收到邀请了吗</p>
+            <h2>输入口令进入双人基地</h2>
+            <p>对方分享给你的邀请卡片里会有一串口令。输入后就可以看到同一个秘密空间。</p>
+            <label class="field join-field">
+              <span>基地口令</span>
+              <input id="joinCodeInput" maxlength="16" placeholder="例如 LOVE-0626" />
+            </label>
+            <button class="primary-button full" id="joinBaseButton">确认加入</button>
+            <button class="text-button" id="previewDemoButton">先看看演示空间</button>
+          </div>
+        </section>
+
         <section class="view active" id="homeView">
           <div class="hero-panel">
             <div class="avatar-row">
@@ -131,6 +145,7 @@
           </div>
 
           <div class="setting-list">
+            <button id="openJoinButton">输入口令加入 <span>LOVE-0626</span></button>
             <button>更换基地背景 <span>暖光日记</span></button>
             <button>提醒设置 <span>纪念日前 1 天</span></button>
             <button>语音偏好 <span>最长 60 秒</span></button>

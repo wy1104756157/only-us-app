@@ -180,6 +180,41 @@ button {
   font-weight: 800;
 }
 
+.join-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 24px;
+  border: 1px solid #dceee6;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #ffffff 0%, #eef8f4 100%);
+  box-shadow: 0 16px 34px rgba(67, 101, 90, 0.1);
+}
+
+.join-card h2 {
+  margin: 0;
+  color: #3d6659;
+  font-size: 25px;
+}
+
+.join-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.join-field {
+  margin-bottom: 0;
+}
+
+.text-button {
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 900;
+}
+
 .quick-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

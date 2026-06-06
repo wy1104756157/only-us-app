@@ -11,6 +11,9 @@ let currentType = "moment";
 let hasVoice = false;
 let hasImage = false;
 let selectedKeyword = "";
+let isJoined = true;
+const inviteCode = "LOVE-0626";
+const inviteUrl = "https://wy1104756157.github.io/only-us-app/?invite=LOVE-0626";
 const removedKeywords = new Set();
 const keptKeywords = new Set();
 
@@ -82,6 +85,7 @@ const entries = [
 ];
 
 const views = {
+  join: document.querySelector("#joinView"),
   home: document.querySelector("#homeView"),
   record: document.querySelector("#recordView"),
   graph: document.querySelector("#graphView"),
@@ -110,6 +114,7 @@ const inviteModal = document.querySelector("#inviteModal");
 const inviteImage = document.querySelector("#inviteImage");
 const shareInviteButton = document.querySelector("#shareInviteButton");
 const downloadInviteButton = document.querySelector("#downloadInviteButton");
+const joinCodeInput = document.querySelector("#joinCodeInput");
 let inviteImageBlob = null;
 let inviteImageUrl = "";
 
@@ -260,6 +265,31 @@ function switchTab(name) {
   tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === name));
 }
 
+function showJoinedApp() {
+  isJoined = true;
+  document.querySelector(".tabbar").hidden = false;
+  document.querySelector("#composeFab").hidden = false;
+  switchTab("home");
+}
+
+function showJoinEntry(code = "") {
+  isJoined = false;
+  document.querySelector(".tabbar").hidden = true;
+  document.querySelector("#composeFab").hidden = true;
+  joinCodeInput.value = code;
+  switchTab("join");
+}
+
+function joinBase() {
+  const code = joinCodeInput.value.trim().toUpperCase();
+  if (code !== inviteCode) {
+    showToast("口令不对，再检查一下邀请卡片");
+    return;
+  }
+  showJoinedApp();
+  showToast("加入成功，欢迎来到你们的秘密基地");
+}
+
 function openComposer(type = "moment") {
   currentType = type;
   const meta = typeMap[type];
@@ -388,7 +418,7 @@ function generateInviteCard() {
 
   ctx.fillStyle = "#405950";
   ctx.font = "bold 38px sans-serif";
-  ctx.fillText("邀请码 LOVE-0626", width / 2, 655);
+  ctx.fillText(`邀请码 ${inviteCode}`, width / 2, 655);
 
   drawMiniCode(ctx, width / 2 - 130, 710, 260);
 
@@ -397,7 +427,7 @@ function generateInviteCard() {
   ctx.fillText("扫码或打开链接加入我们的空间", width / 2, 1045);
   ctx.fillStyle = "#4f806f";
   ctx.font = "24px sans-serif";
-  ctx.fillText("wy1104756157.github.io/only-us-app", width / 2, 1092);
+  ctx.fillText("链接已带入口令，可直接打开加入", width / 2, 1092);
 
   ctx.fillStyle = "#9aaaa3";
   ctx.font = "22px sans-serif";
@@ -441,7 +471,7 @@ async function shareInviteCard() {
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
       title: "只给我们",
-      text: "邀请你加入我们的双人秘密基地",
+      text: `邀请你加入我们的双人秘密基地：${inviteUrl}`,
       files: [file],
     });
     return;
@@ -502,6 +532,9 @@ document.querySelector("#copyInviteButton").addEventListener("click", () => {
   openInviteCard();
 });
 document.querySelector("#closeInviteModal").addEventListener("click", closeInviteCard);
+document.querySelector("#joinBaseButton").addEventListener("click", joinBase);
+document.querySelector("#previewDemoButton").addEventListener("click", showJoinedApp);
+document.querySelector("#openJoinButton").addEventListener("click", () => showJoinEntry(inviteCode));
 shareInviteButton.addEventListener("click", () => {
   shareInviteCard().catch(() => showToast("分享被取消或当前浏览器不支持"));
 });
@@ -583,5 +616,10 @@ modal.addEventListener("click", (event) => {
 inviteModal.addEventListener("click", (event) => {
   if (event.target === inviteModal) closeInviteCard();
 });
+
+const inviteParam = new URLSearchParams(window.location.search).get("invite");
+if (inviteParam) {
+  showJoinEntry(inviteParam.toUpperCase());
+}
 
 renderFeed();
