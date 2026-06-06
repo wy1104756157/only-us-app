@@ -193,6 +193,28 @@
       </section>
     </div>
 
+    <div class="modal-backdrop" id="inviteModal" aria-hidden="true">
+      <section class="modal-card invite-modal-card" role="dialog" aria-modal="true" aria-labelledby="inviteModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">邀请卡片</p>
+            <h2 id="inviteModalTitle">把 TA 带进基地</h2>
+          </div>
+          <button class="icon-button" id="closeInviteModal" aria-label="关闭">×</button>
+        </div>
+
+        <div class="invite-preview">
+          <img id="inviteImage" alt="只给我们的邀请卡片" />
+        </div>
+
+        <div class="invite-actions">
+          <button class="primary-button" id="shareInviteButton">分享图片</button>
+          <button class="media-button" id="downloadInviteButton">下载图片</button>
+        </div>
+        <p class="share-hint">手机浏览器会优先调起系统分享；电脑端会下载邀请图片。</p>
+      </section>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script src="app.js"></script>

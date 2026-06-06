@@ -736,6 +736,11 @@ button {
   box-shadow: var(--shadow);
 }
 
+.invite-modal-card {
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -809,6 +814,35 @@ button {
   border-color: #a9cdbd;
   background: var(--primary-soft);
   color: #4f806f;
+}
+
+.invite-preview {
+  margin: 8px 0 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #f8fcfa;
+}
+
+.invite-preview img {
+  display: block;
+  width: 100%;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.invite-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.share-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .voice-preview {

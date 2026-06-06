@@ -106,6 +106,12 @@ const keywordList = document.querySelector("#keywordList");
 const relatedEntries = document.querySelector("#relatedEntries");
 const relatedTitle = document.querySelector("#relatedTitle");
 const graphSummary = document.querySelector("#graphSummary");
+const inviteModal = document.querySelector("#inviteModal");
+const inviteImage = document.querySelector("#inviteImage");
+const shareInviteButton = document.querySelector("#shareInviteButton");
+const downloadInviteButton = document.querySelector("#downloadInviteButton");
+let inviteImageBlob = null;
+let inviteImageUrl = "";
 
 function renderFeed() {
   renderUnreadBadges();
@@ -287,6 +293,163 @@ function showToast(message) {
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
+function roundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function drawMiniCode(ctx, x, y, size) {
+  ctx.fillStyle = "#f7fbf8";
+  roundedRect(ctx, x, y, size, size, 18);
+  ctx.fill();
+  ctx.strokeStyle = "#dceee6";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const cells = [
+    [1, 1], [2, 1], [4, 1], [6, 1],
+    [1, 2], [3, 2], [5, 2],
+    [2, 3], [4, 3], [6, 3],
+    [1, 4], [3, 4], [5, 4],
+    [2, 5], [4, 5], [6, 5],
+    [1, 6], [3, 6], [5, 6], [6, 6],
+  ];
+  const gap = size / 9;
+  ctx.fillStyle = "#4f806f";
+  cells.forEach(([cx, cy]) => {
+    roundedRect(ctx, x + cx * gap, y + cy * gap, gap * 0.68, gap * 0.68, 3);
+    ctx.fill();
+  });
+  ctx.fillStyle = "#6eae99";
+  ctx.beginPath();
+  ctx.arc(x + size / 2, y + size / 2, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("只", x + size / 2, y + size / 2 + 6);
+}
+
+function generateInviteCard() {
+  const canvas = document.createElement("canvas");
+  const width = 900;
+  const height = 1280;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#f7fbf8";
+  ctx.fillRect(0, 0, width, height);
+
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, "#eef8f4");
+  gradient.addColorStop(0.58, "#fffaf0");
+  gradient.addColorStop(1, "#eef8fb");
+  ctx.fillStyle = gradient;
+  roundedRect(ctx, 70, 70, width - 140, height - 140, 42);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255,255,255,0.76)";
+  roundedRect(ctx, 120, 150, width - 240, 900, 34);
+  ctx.fill();
+
+  ctx.fillStyle = "#6eae99";
+  ctx.font = "bold 34px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("双人秘密基地", width / 2, 235);
+
+  ctx.fillStyle = "#31433d";
+  ctx.font = "bold 74px sans-serif";
+  ctx.fillText("只给我们", width / 2, 330);
+
+  ctx.fillStyle = "#63736e";
+  ctx.font = "30px sans-serif";
+  ctx.fillText("邀请你一起记录心动、心愿和悄悄话", width / 2, 392);
+
+  ctx.fillStyle = "#ffffff";
+  roundedRect(ctx, 255, 470, 230, 88, 44);
+  ctx.fill();
+  roundedRect(ctx, 415, 470, 230, 88, 44);
+  ctx.fill();
+  ctx.fillStyle = "#6eae99";
+  ctx.font = "bold 32px sans-serif";
+  ctx.fillText("你", 370, 526);
+  ctx.fillStyle = "#f0b79e";
+  ctx.fillText("TA", 530, 526);
+
+  ctx.fillStyle = "#405950";
+  ctx.font = "bold 38px sans-serif";
+  ctx.fillText("邀请码 LOVE-0626", width / 2, 655);
+
+  drawMiniCode(ctx, width / 2 - 130, 710, 260);
+
+  ctx.fillStyle = "#63736e";
+  ctx.font = "26px sans-serif";
+  ctx.fillText("扫码或打开链接加入我们的空间", width / 2, 1045);
+  ctx.fillStyle = "#4f806f";
+  ctx.font = "24px sans-serif";
+  ctx.fillText("wy1104756157.github.io/only-us-app", width / 2, 1092);
+
+  ctx.fillStyle = "#9aaaa3";
+  ctx.font = "22px sans-serif";
+  ctx.fillText("把小事存下来，等以后一起回头看", width / 2, 1180);
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      inviteImageBlob = blob;
+      if (inviteImageUrl) URL.revokeObjectURL(inviteImageUrl);
+      inviteImageUrl = URL.createObjectURL(blob);
+      inviteImage.src = inviteImageUrl;
+      resolve(blob);
+    }, "image/png");
+  });
+}
+
+async function openInviteCard() {
+  inviteModal.classList.add("active");
+  inviteModal.setAttribute("aria-hidden", "false");
+  await generateInviteCard();
+}
+
+function closeInviteCard() {
+  inviteModal.classList.remove("active");
+  inviteModal.setAttribute("aria-hidden", "true");
+}
+
+function downloadInviteCard() {
+  if (!inviteImageUrl) return;
+  const link = document.createElement("a");
+  link.href = inviteImageUrl;
+  link.download = "只给我们-邀请卡片.png";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+async function shareInviteCard() {
+  if (!inviteImageBlob) await generateInviteCard();
+  const file = new File([inviteImageBlob], "只给我们-邀请卡片.png", { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({
+      title: "只给我们",
+      text: "邀请你加入我们的双人秘密基地",
+      files: [file],
+    });
+    return;
+  }
+  downloadInviteCard();
+  showToast("当前浏览器不支持直接分享，已下载图片");
+}
+
 function publishEntry() {
   const meta = typeMap[currentType];
   const title = entryTitle.value.trim() || meta.title;
@@ -333,11 +496,16 @@ document.querySelector("#closeModal").addEventListener("click", closeComposer);
 document.querySelector("#publishButton").addEventListener("click", publishEntry);
 document.querySelector("#inviteButton").addEventListener("click", () => {
   switchTab("base");
-  showToast("邀请卡片已准备好：LOVE-0626");
+  openInviteCard();
 });
 document.querySelector("#copyInviteButton").addEventListener("click", () => {
-  showToast("已生成微信邀请卡片");
+  openInviteCard();
 });
+document.querySelector("#closeInviteModal").addEventListener("click", closeInviteCard);
+shareInviteButton.addEventListener("click", () => {
+  shareInviteCard().catch(() => showToast("分享被取消或当前浏览器不支持"));
+});
+downloadInviteButton.addEventListener("click", downloadInviteCard);
 document.querySelector("#backButton").addEventListener("click", () => switchTab("home"));
 document.querySelector("#openGraphButton").addEventListener("click", () => switchTab("graph"));
 document.querySelector("#resetGraphButton").addEventListener("click", () => {
@@ -410,6 +578,10 @@ voiceToggle.addEventListener("click", () => {
 
 modal.addEventListener("click", (event) => {
   if (event.target === modal) closeComposer();
+});
+
+inviteModal.addEventListener("click", (event) => {
+  if (event.target === inviteModal) closeInviteCard();
 });
 
 renderFeed();
